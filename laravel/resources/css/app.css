@@ -1,0 +1,181 @@
+@import 'tailwindcss';
+
+@source '../views/**/*.blade.php';
+@source '../js/**/*.js';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+
+@theme {
+    --color-plum-50: #FDF2F7;
+    --color-plum-100: #FCE7F3;
+    --color-plum-200: #FBCFE8;
+    --color-plum-600: #9B1C58;
+    --color-plum-700: #7A1C49;
+    --color-plum-800: #5C1236;
+    --color-plum-900: #3D0B24;
+    --color-gold-500: #D97706;
+    --color-gold-600: #B45309;
+}
+
+[x-cloak] {
+    display: none !important;
+}
+
+.modal-backdrop {
+    background-color: rgba(17, 24, 39, 0.65) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+:root {
+    --font-scale: 1;
+    --brand-primary: #7A1C49;
+    --brand-primary-dark: #5C1236;
+    --brand-focus: rgba(122, 28, 73, 0.2);
+}
+
+body {
+    font-size: calc(16px * var(--font-scale));
+    background-color: #F4F5F7;
+    color: #111827;
+    overflow-x: hidden;
+}
+
+.salon-sidebar {
+    scroll-behavior: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Senior-Friendly Accessible Components */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    font-weight: 700;
+    border-radius: 0.75rem;
+    min-height: 48px;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+.btn:focus-visible {
+    outline: 3px solid #D97706;
+    outline-offset: 2px;
+}
+
+.btn-primary {
+    background-color: var(--brand-primary);
+    color: #FFFFFF;
+}
+.btn-primary:hover {
+    background-color: var(--brand-primary-dark);
+}
+
+.btn-secondary {
+    background-color: #FFFFFF;
+    color: #111827;
+    border: 2px solid #9CA3AF;
+}
+.btn-secondary:hover {
+    background-color: #F3F4F6;
+    border-color: #111827;
+}
+
+.btn-danger {
+    background-color: #DC2626;
+    color: #FFFFFF;
+}
+.btn-danger:hover {
+    background-color: #B91C1C;
+}
+
+.btn-success {
+    background-color: #16A34A;
+    color: #FFFFFF;
+}
+.btn-success:hover {
+    background-color: #15803D;
+}
+
+.form-input, .form-select, .form-textarea {
+    width: 100%;
+    border: 2px solid #9CA3AF;
+    border-radius: 0.75rem;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #111827;
+    background-color: #FFFFFF;
+    min-height: 48px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+    outline: none;
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 4px var(--brand-focus);
+}
+
+.card {
+    background-color: #FFFFFF;
+    border-radius: 1rem;
+    border: 2px solid #E5E7EB;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+.inventory-table {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.inventory-table th,
+.inventory-table td {
+    padding-right: 0.5rem;
+    padding-left: 0.5rem;
+    overflow-wrap: anywhere;
+}
+
+.inventory-table th:nth-child(1),
+.inventory-table td:nth-child(1) {
+    width: 21%;
+}
+
+.inventory-table th:nth-child(2),
+.inventory-table td:nth-child(2) {
+    width: 11%;
+}
+
+.inventory-table th:nth-child(3),
+.inventory-table td:nth-child(3),
+.inventory-table th:nth-child(4),
+.inventory-table td:nth-child(4) {
+    width: 13%;
+}
+
+.inventory-table th:nth-child(5),
+.inventory-table td:nth-child(5) {
+    width: 14%;
+}
+
+.inventory-table th:nth-child(6),
+.inventory-table td:nth-child(6) {
+    width: 12%;
+}
+
+.inventory-table th:nth-child(7),
+.inventory-table td:nth-child(7) {
+    width: 16%;
+}
+
+.inventory-status-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+}

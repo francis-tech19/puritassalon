@@ -35,9 +35,6 @@ class AppointmentController extends Controller
 
         /** @var User|null $user */
         $user = Auth::user();
-        if ($user?->isStaff()) {
-            $query->where('employee_id', $user->employee_id);
-        }
 
         if ($status && $status !== 'ALL') {
             $query->where('status', $status);
@@ -292,7 +289,7 @@ class AppointmentController extends Controller
     {
         /** @var User|null $user */
         $user = Auth::user();
-        abort_unless($user?->isOwnerOrAdmin() || ($user?->isStaff() && $user->employee_id === $appointment->employee_id), 403);
+        abort_unless($user?->isOwnerOrAdmin() || $user?->isStaff(), 403);
     }
 
     private function lateThresholdElapsed(Appointment $appointment): bool

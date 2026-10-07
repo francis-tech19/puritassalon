@@ -32,6 +32,7 @@ class AuthController extends Controller
     {
         $validated = $request->validate([
             'full_name' => 'required|string|max:100',
+            'username' => ['required', 'string', 'min:3', 'max:50', 'alpha_dash', 'unique:users,username'],
             'email' => 'required|email|max:100|unique:users,email',
             'phone' => 'required|string|max:20',
             'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
@@ -46,7 +47,7 @@ class AuthController extends Controller
         ]);
         $code = (string) random_int(100000, 999999);
         $user = User::create([
-            'username' => $validated['email'],
+            'username' => $validated['username'],
             'name' => $validated['full_name'],
             'email' => $validated['email'],
             'password' => $validated['password'],
@@ -153,25 +154,32 @@ class AuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('username', $credentials['username'])->first();
+        $loginInput = trim((string) $credentials['username']);
+        $user = User::where('username', $loginInput)
+            ->orWhere('email', $loginInput)
+            ->first();
 
         if (! $user) {
-            AuditLog::log(null, 'LOGIN_FAILED', 'AUTHENTICATION', 'Failed login attempt for an unknown username.');
+            AuditLog::log(null, 'LOGIN_FAILED', 'AUTHENTICATION', "Failed login attempt for unknown user: {$loginInput}");
 
-            return back()->withErrors(['username' => 'Invalid username or password.'])->withInput();
+            return back()->withErrors(['username' => 'Invalid username/email or password.'])->withInput();
         }
 
         if (! $user->is_active) {
             AuditLog::log($user->id, 'LOGIN_BLOCKED', 'AUTHENTICATION', 'Login blocked for an inactive account.');
 
-            return back()->withErrors(['username' => 'Invalid username or password.'])->withInput();
+            return back()->withErrors(['username' => 'This account has been deactivated.'])->withInput();
         }
 
         if ($user->isCustomer() && ! $user->email_verified_at) {
-            return back()->withErrors(['username' => 'Please verify your email before logging in.']);
+            return redirect()->route('verification.form', $user)->withErrors(['code' => 'Please verify your email before logging in.']);
         }
 
-        if (Auth::attempt(['username' => $credentials['username'], 'password' => $credentials['password']], $request->filled('remember'))) {
+        $field = filter_var($loginInput, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
+        $attempt = Auth::attempt([$field => $loginInput, 'password' => $credentials['password']], $request->filled('remember'))
+            || Auth::attempt(['id' => $user->id, 'password' => $credentials['password']], $request->filled('remember'));
+
+        if ($attempt) {
             $request->session()->regenerate();
 
             if ($user->isCustomer() && ($request->filled('service') || $request->filled('return'))) {
@@ -196,7 +204,7 @@ class AuthController extends Controller
 
         AuditLog::log($user->id, 'LOGIN_FAILED', 'AUTHENTICATION', 'Failed login attempt with an invalid password.');
 
-        return back()->withErrors(['username' => 'Invalid username or password.'])->withInput();
+        return back()->withErrors(['username' => 'Invalid username/email or password.'])->withInput();
     }
 
     public function logout(Request $request)

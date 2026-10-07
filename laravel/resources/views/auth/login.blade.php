@@ -731,8 +731,8 @@
                 <input type="hidden" name="service" value="{{ request('service') }}">
                 <input type="hidden" name="return" value="{{ request('return') }}">
 
-                <!-- Username -->
-                <label class="field-label" for="username">Username</label>
+                <!-- Username or Email -->
+                <label class="field-label" for="username">Username or Email</label>
                 <div class="input-wrap">
                     <span class="input-icon">
                         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
@@ -747,7 +747,7 @@
                         value="{{ old('username') }}"
                         required
                         autofocus
-                        placeholder="Enter your username"
+                        placeholder="Enter your username or email"
                         autocomplete="username"
                     >
                 </div>

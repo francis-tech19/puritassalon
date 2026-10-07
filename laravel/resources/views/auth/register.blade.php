@@ -30,6 +30,11 @@
         <form method="POST" action="{{ route('register.post') }}" class="space-y-4" id="registerForm">@csrf
             <input type="hidden" name="service" value="{{ request('service') }}"><input type="hidden" name="return" value="{{ request('return') }}">
             <div><label class="font-bold text-sm" for="full_name">Full name</label><input id="full_name" name="full_name" value="{{ old('full_name') }}" required class="form-input w-full mt-1"></div>
+            <div>
+                <label class="font-bold text-sm" for="username">Username</label>
+                <input id="username" name="username" value="{{ old('username') }}" required minlength="3" maxlength="50" pattern="[A-Za-z0-9_.-]+" placeholder="e.g. claradlc" class="form-input w-full mt-1">
+                <p class="text-[11px] text-gray-500 mt-0.5">Used to log in to your account.</p>
+            </div>
             <div><label class="font-bold text-sm" for="email">Email address</label><input id="email" type="email" name="email" value="{{ old('email') }}" required class="form-input w-full mt-1"></div>
             <div><label class="font-bold text-sm" for="phone">Phone number</label><input id="phone" name="phone" value="{{ old('phone') }}" required class="form-input w-full mt-1"></div>
             <div><label class="font-bold text-sm" for="password">Password</label><div class="password-wrap mt-1"><input id="password" type="password" name="password" required minlength="8" pattern="(?=.*[A-Z])(?=.*[0-9]).{8,}" aria-describedby="passwordHint" class="form-input w-full"><button type="button" class="toggle-password" data-password-target="password" aria-label="Show password" title="Show password"><span aria-hidden="true">&#128065;</span></button></div><p id="passwordHint" class="password-hint mt-1">Use at least 8 characters, including one uppercase letter and one number.</p></div>

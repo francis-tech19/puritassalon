@@ -9,7 +9,7 @@
             <p class="mt-1 font-semibold text-gray-600">Good day, {{ $employee->full_name }}. Here is your schedule for {{ $todayAppointments->isEmpty() ? now()->format('F j, Y') : \Carbon\Carbon::today()->format('F j, Y') }}.</p>
         </div>
         <div class="flex flex-wrap gap-3">
-            <a href="{{ route('appointments.index', ['date' => now()->toDateString(), 'employee_id' => $employee->id]) }}" class="btn btn-primary text-sm"><i data-lucide="calendar-check" class="h-4 w-4"></i> Manage appointments</a>
+            <a href="{{ route('appointments.index', ['date' => now()->toDateString()]) }}" class="btn btn-primary text-sm"><i data-lucide="calendar-check" class="h-4 w-4"></i> Manage appointments</a>
             <a href="{{ route('sales.index') }}" class="btn btn-secondary text-sm"><i data-lucide="shopping-cart" class="h-4 w-4"></i> Open POS</a>
         </div>
     </div>

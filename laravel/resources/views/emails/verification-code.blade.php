@@ -27,7 +27,7 @@
                                 Purita's Beauty Lounge
                             </h1>
                             <p style="margin: 0 0 25px 0; color: #4B5563; font-size: 15px; line-height: 1.5;">
-                                Hello <strong>{{ $user->name }}</strong>,<br>
+                                Hello <strong>{{ $name ?? ($user->name ?? 'Valued Customer') }}</strong>,<br>
                                 Thank you for registering! Please use the verification code below to confirm your email and activate your account.
                             </p>
                             

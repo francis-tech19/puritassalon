@@ -13,10 +13,20 @@ class VerificationCodeMail extends Mailable
 {
     use Queueable, SerializesModels;
 
+    public string $name;
+    public ?User $user = null;
+
     public function __construct(
-        public User $user,
+        string|User $recipient,
         public string $code
-    ) {}
+    ) {
+        if ($recipient instanceof User) {
+            $this->user = $recipient;
+            $this->name = $recipient->name;
+        } else {
+            $this->name = $recipient;
+        }
+    }
 
     public function envelope(): Envelope
     {
@@ -29,6 +39,11 @@ class VerificationCodeMail extends Mailable
     {
         return new Content(
             view: 'emails.verification-code',
+            with: [
+                'name' => $this->name,
+                'code' => $this->code,
+                'user' => $this->user,
+            ],
         );
     }
 

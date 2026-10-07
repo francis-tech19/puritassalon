@@ -28,9 +28,9 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,15')->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,15')->name('register.post');
-Route::get('/verify-email/{user}', [AuthController::class, 'showVerification'])->name('verification.form');
-Route::post('/verify-email/{user}', [AuthController::class, 'verify'])->middleware('throttle:10,15')->name('verification.verify');
-Route::post('/verify-email/{user}/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1')->name('verification.resend');
+Route::get('/verify-email/{user?}', [AuthController::class, 'showVerification'])->name('verification.form');
+Route::post('/verify-email/{user?}', [AuthController::class, 'verify'])->middleware('throttle:10,15')->name('verification.verify');
+Route::post('/verify-email/{user?}/resend', [AuthController::class, 'resendVerification'])->middleware('throttle:6,1')->name('verification.resend');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/', [HomeController::class, 'index'])->name('home');

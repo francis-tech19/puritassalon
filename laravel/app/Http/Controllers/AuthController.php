@@ -38,24 +38,17 @@ class AuthController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/[A-Z]/', 'regex:/[0-9]/'],
         ]);
 
-        $customer = Customer::create([
-            'customer_code' => 'CUST-'.strtoupper(Str::random(6)),
-            'full_name' => $validated['full_name'],
-            'phone' => $validated['phone'],
-            'email' => $validated['email'],
-            'status' => 'ACTIVE',
-        ]);
         $code = (string) random_int(100000, 999999);
-        $user = User::create([
+
+        // Do not save to database yet — save pending registration in session until code is verified
+        $request->session()->put('pending_registration', [
+            'full_name' => $validated['full_name'],
             'username' => $validated['username'],
-            'name' => $validated['full_name'],
             'email' => $validated['email'],
+            'phone' => $validated['phone'],
             'password' => $validated['password'],
-            'role_id' => Role::firstOrCreate(['role_name' => 'CUSTOMER'])->id,
-            'customer_id' => $customer->id,
-            'is_active' => true,
-            'verification_code' => $code,
-            'verification_expires_at' => now()->addMinutes(10),
+            'code' => $code,
+            'expires_at' => now()->addMinutes(10)->timestamp,
         ]);
 
         $request->session()->put('booking_intent', array_filter([
@@ -65,7 +58,7 @@ class AuthController extends Controller
 
         $mailSent = false;
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            Mail::to($validated['email'])->send(new VerificationCodeMail($validated['full_name'], $code));
             $mailSent = true;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Registration email failed to send: ' . $e->getMessage());
@@ -75,29 +68,69 @@ class AuthController extends Controller
             $request->session()->flash('demo_verification_code', $code);
         }
 
-        return redirect()->route('verification.form', $user)->with('success', $mailSent ? 'A verification code was sent to your email.' : 'Account created! Please enter your verification code.');
+        return redirect()->route('verification.form')->with('success', $mailSent ? 'A verification code was sent to your email.' : 'Please enter your verification code to complete registration.');
     }
 
-    public function showVerification(User $user)
+    public function showVerification(?User $user = null)
     {
-        return view('auth.verify', compact('user'));
+        if ($user && $user->exists && $user->email_verified_at) {
+            return redirect()->route('customer.dashboard');
+        }
+
+        $pending = session('pending_registration');
+        $email = $user?->email ?? ($pending['email'] ?? null);
+
+        if (! $email && (! $user || ! $user->exists)) {
+            return redirect()->route('register')->withErrors(['email' => 'No registration in progress. Please create an account.']);
+        }
+
+        return view('auth.verify', [
+            'user' => $user && $user->exists ? $user : null,
+            'email' => $email,
+        ]);
     }
 
-    public function resendVerification(Request $request, User $user)
+    public function resendVerification(Request $request, ?User $user = null)
     {
-        if ($user->email_verified_at) {
-            return redirect()->route('customer.dashboard')->with('success', 'Your account is already verified.');
+        if ($user && $user->exists) {
+            if ($user->email_verified_at) {
+                return redirect()->route('customer.dashboard')->with('success', 'Your account is already verified.');
+            }
+
+            $code = (string) random_int(100000, 999999);
+            $user->update([
+                'verification_code' => $code,
+                'verification_expires_at' => now()->addMinutes(10),
+            ]);
+
+            $mailSent = false;
+            try {
+                Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+                $mailSent = true;
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Resend email failed to send: ' . $e->getMessage());
+            }
+
+            if (app()->environment('local') || config('mail.default') === 'log' || ! $mailSent) {
+                $request->session()->flash('demo_verification_code', $code);
+            }
+
+            return back()->with('success', 'A new verification code has been generated and sent to your email.');
+        }
+
+        $pending = $request->session()->get('pending_registration');
+        if (! $pending) {
+            return redirect()->route('register')->withErrors(['email' => 'Registration session expired. Please register again.']);
         }
 
         $code = (string) random_int(100000, 999999);
-        $user->update([
-            'verification_code' => $code,
-            'verification_expires_at' => now()->addMinutes(10),
-        ]);
+        $pending['code'] = $code;
+        $pending['expires_at'] = now()->addMinutes(10)->timestamp;
+        $request->session()->put('pending_registration', $pending);
 
         $mailSent = false;
         try {
-            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            Mail::to($pending['email'])->send(new VerificationCodeMail($pending['full_name'], $code));
             $mailSent = true;
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('Resend email failed to send: ' . $e->getMessage());
@@ -107,44 +140,99 @@ class AuthController extends Controller
             $request->session()->flash('demo_verification_code', $code);
         }
 
-        return back()->with('success', 'A new verification code has been generated and sent to your email.');
+        return back()->with('success', 'A new verification code has been sent to your email.');
     }
 
-    public function verify(Request $request, User $user)
+    public function verify(Request $request, ?User $user = null)
     {
-        if ($user->email_verified_at) {
-            Auth::login($user);
-            $request->session()->regenerate();
-
-            return redirect()->route('customer.dashboard');
-        }
-
         $validated = $request->validate([
             'code' => 'required|string',
         ]);
         $inputCode = trim((string) $validated['code']);
 
-        if (! $user->verification_code || (string) $user->verification_code !== $inputCode) {
+        // Case 1: Verifying existing user in database
+        if ($user && $user->exists) {
+            if ($user->email_verified_at) {
+                Auth::login($user);
+                $request->session()->regenerate();
+
+                return redirect()->route('customer.dashboard');
+            }
+
+            if (! $user->verification_code || (string) $user->verification_code !== $inputCode) {
+                return back()->withErrors(['code' => 'The verification code entered is incorrect.'])->withInput();
+            }
+
+            if (! $user->verification_expires_at || now()->greaterThan($user->verification_expires_at)) {
+                return back()->withErrors(['code' => 'The verification code has expired. Please click "Resend Code" to receive a new one.'])->withInput();
+            }
+
+            $user->update([
+                'email_verified_at' => now(),
+                'verification_code' => null,
+                'verification_expires_at' => null,
+            ]);
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            if ($request->session()->has('booking_intent')) {
+                return redirect()->route('customer.dashboard', ['view' => 'booking'])->with('success', 'Email verified successfully! You can now proceed with your booking.');
+            }
+
+            return redirect()->route('customer.dashboard')->with('success', 'Email verified successfully! Welcome to Purita\'s Beauty Lounge.');
+        }
+
+        // Case 2: Pending registration in session — only now create in database
+        $pending = $request->session()->get('pending_registration');
+        if (! $pending) {
+            return redirect()->route('register')->withErrors(['email' => 'Registration session expired. Please register again.']);
+        }
+
+        if ((string) ($pending['code'] ?? '') !== $inputCode) {
             return back()->withErrors(['code' => 'The verification code entered is incorrect.'])->withInput();
         }
 
-        if (! $user->verification_expires_at || now()->greaterThan($user->verification_expires_at)) {
+        if (now()->timestamp > ($pending['expires_at'] ?? 0)) {
             return back()->withErrors(['code' => 'The verification code has expired. Please click "Resend Code" to receive a new one.'])->withInput();
         }
 
-        $user->update([
+        if (User::where('email', $pending['email'])->exists() || User::where('username', $pending['username'])->exists()) {
+            $request->session()->forget('pending_registration');
+
+            return redirect()->route('login')->withErrors(['username' => 'An account with this username or email already exists. Please log in.']);
+        }
+
+        // Only save Customer and User to database after successful verification
+        $customer = Customer::create([
+            'customer_code' => 'CUST-'.strtoupper(Str::random(6)),
+            'full_name' => $pending['full_name'],
+            'phone' => $pending['phone'],
+            'email' => $pending['email'],
+            'status' => 'ACTIVE',
+        ]);
+
+        $newUser = User::create([
+            'username' => $pending['username'],
+            'name' => $pending['full_name'],
+            'email' => $pending['email'],
+            'password' => $pending['password'],
+            'role_id' => Role::firstOrCreate(['role_name' => 'CUSTOMER'])->id,
+            'customer_id' => $customer->id,
+            'is_active' => true,
             'email_verified_at' => now(),
             'verification_code' => null,
             'verification_expires_at' => null,
         ]);
-        Auth::login($user);
+
+        $request->session()->forget('pending_registration');
+        Auth::login($newUser);
         $request->session()->regenerate();
 
         if ($request->session()->has('booking_intent')) {
-            return redirect()->route('customer.dashboard', ['view' => 'booking'])->with('success', 'Email verified successfully! You can now proceed with your booking.');
+            return redirect()->route('customer.dashboard', ['view' => 'booking'])->with('success', 'Email verified and account created! You can now proceed with your booking.');
         }
 
-        return redirect()->route('customer.dashboard')->with('success', 'Email verified successfully! Welcome to Purita\'s Beauty Lounge.');
+        return redirect()->route('customer.dashboard')->with('success', 'Email verified and account created! Welcome to Purita\'s Beauty Lounge.');
     }
 
     public function login(Request $request)

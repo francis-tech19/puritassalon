@@ -23,7 +23,7 @@
         <h1 class="text-2xl sm:text-3xl font-black text-[#7A1C49] tracking-tight">Verify Your Email</h1>
         <p class="text-gray-600 text-sm mt-2 mb-6">
             We sent a six-digit verification code to <br>
-            <strong class="text-gray-900 font-bold break-all">{{ $user->email }}</strong>
+            <strong class="text-gray-900 font-bold break-all">{{ $email ?? $user?->email }}</strong>
         </p>
 
         {{-- Flash Success Message --}}
@@ -44,7 +44,7 @@
 
         {{-- Helper Box for Local Environment or Log Mailer --}}
         @php
-            $displayCode = session('demo_verification_code') ?? (app()->environment('local') ? $user->verification_code : null);
+            $displayCode = session('demo_verification_code') ?? (app()->environment('local') ? (session('pending_registration.code') ?? $user?->verification_code) : null);
         @endphp
         @if($displayCode)
             <div class="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-900 text-xs text-left">
@@ -58,7 +58,7 @@
         @endif
 
         {{-- Verification Form --}}
-        <form method="POST" action="{{ route('verification.verify', $user) }}" class="space-y-4">
+        <form method="POST" action="{{ route('verification.verify', $user ?? '') }}" class="space-y-4">
             @csrf
             <div>
                 <label for="verification-code-input" class="block text-xs font-bold uppercase tracking-wider text-gray-500 mb-2">Enter 6-Digit Code</label>
@@ -83,7 +83,7 @@
 
         {{-- Resend Code Section --}}
         <div class="mt-6 pt-5 border-t border-gray-100 flex flex-col gap-3">
-            <form method="POST" action="{{ route('verification.resend', $user) }}">
+            <form method="POST" action="{{ route('verification.resend', $user ?? '') }}">
                 @csrf
                 <p class="text-xs text-gray-500 mb-2">Didn't receive the email or code expired?</p>
                 <button type="submit" class="text-sm font-bold text-[#7A1C49] hover:text-[#5C1236] hover:underline transition">

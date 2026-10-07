@@ -71,7 +71,7 @@
 
     <div class="flex min-h-screen w-full">
         <!-- Desktop / Tablet Plum Sidebar -->
-        <aside data-sidebar-scroll="customer-desktop" class="hidden md:flex md:w-64 lg:w-72 bg-[#7A1C49] flex-col justify-between shrink-0 sticky top-0 h-screen overflow-y-auto z-30 shadow-xl border-r border-[#5C1236]/40 select-none">
+        <aside data-sidebar-scroll="customer-desktop" class="hidden md:flex md:w-64 lg:w-72 bg-[#7A1C49] flex-col justify-between shrink-0 sticky top-0 self-start h-screen overflow-y-auto z-20 shadow-xl border-r border-[#5C1236]/40 select-none">
             <div class="p-6 flex flex-col h-full justify-between">
                 <div>
                     <!-- Brand Header -->

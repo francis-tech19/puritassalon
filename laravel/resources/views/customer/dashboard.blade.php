@@ -390,7 +390,7 @@
         {{-- Header & Stepper --}}
         <div>
             <h1 class="text-2xl sm:text-3xl font-black text-gray-900">Book an Appointment</h1>
-            <p class="text-sm font-semibold text-gray-500 mt-0.5">Choose a service, employee, date, and currently available time.</p>
+            <p class="text-sm font-semibold text-gray-500 mt-0.5">Choose a service, employee, date, and time. Same-day appointments must be booked at least <strong class="text-[#7A1C49]">1 hour in advance</strong>.</p>
         </div>
 
         {{-- Stepper Component (1 Service, 2 Employee, 3 Date, 4 Time, 5 Review) --}}
@@ -521,10 +521,16 @@
                 {{-- Step 3: Date --}}
                 <div x-show="bookingStep === 3" class="space-y-4">
                     <h2 class="text-xl font-bold text-gray-900">Select Date</h2>
-                    <div class="max-w-md">
-                        <label class="block text-xs font-black uppercase text-gray-600 mb-1">Appointment Date</label>
-                        <input type="date" name="appointment_date" min="{{ now()->toDateString() }}" x-model="selectedAppointmentDate" @change="loadBookingSlots()" required class="form-input text-base">
-                        <p class="text-xs font-semibold text-gray-500 mt-2">Weekdays: {{ date('g:i A', strtotime($businessSettings?->opening_time ?? '10:00')) }}–{{ date('g:i A', strtotime($businessSettings?->closing_time ?? '16:00')) }}. Weekends: {{ date('g:i A', strtotime($businessSettings?->weekend_opening_time ?? '09:00')) }}–{{ date('g:i A', strtotime($businessSettings?->weekend_closing_time ?? '17:00')) }}.</p>
+                    <div class="max-w-md space-y-3">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-gray-600 mb-1">Appointment Date</label>
+                            <input type="date" name="appointment_date" min="{{ now()->toDateString() }}" x-model="selectedAppointmentDate" @change="loadBookingSlots()" required class="form-input text-base">
+                        </div>
+                        <div class="p-3 rounded-xl bg-blue-50 border border-blue-200 text-xs font-semibold text-blue-900 space-y-1">
+                            <p>📅 <strong>Weekdays:</strong> {{ date('g:i A', strtotime($businessSettings?->opening_time ?? '10:00')) }} – {{ date('g:i A', strtotime($businessSettings?->closing_time ?? '16:00')) }}</p>
+                            <p>🗓 <strong>Weekends:</strong> {{ date('g:i A', strtotime($businessSettings?->weekend_opening_time ?? '09:00')) }} – {{ date('g:i A', strtotime($businessSettings?->weekend_closing_time ?? '17:00')) }}</p>
+                            <p class="text-amber-800">⏰ Same-day bookings require at least <strong>1 hour</strong> advance notice.</p>
+                        </div>
                     </div>
                     <div class="flex justify-between pt-4">
                         <button type="button" @click="bookingStep = 2" class="btn btn-secondary text-sm">Back</button>
@@ -557,7 +563,7 @@
                     </div>
                     <div class="p-4 rounded-xl bg-amber-50 border border-amber-200 text-xs font-semibold text-amber-900 flex items-start gap-2">
                         <i data-lucide="info" class="w-4 h-4 text-[#D97706] shrink-0 mt-0.5"></i>
-                        <span>Only times that fit the service duration, salon hours, employee schedule, and existing appointments can be selected.</span>
+                        <span>Only slots that fit within salon hours are shown. Same-day slots within the next hour are hidden. The service must fully complete before closing time.</span>
                     </div>
                     <div class="flex justify-between pt-4">
                         <button type="button" @click="bookingStep = 3" class="btn btn-secondary text-sm">Back</button>

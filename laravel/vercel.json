@@ -35,6 +35,7 @@
     "APP_ENV": "production",
     "APP_DEBUG": "false",
     "APP_KEY": "base64:LqfCq6YDN5a0P/PneCjCj1wBcIUKouSzu2v1c/Vd8lM=",
+    "APP_TIMEZONE": "Asia/Manila",
     "DB_CONNECTION": "sqlite",
     "DB_DATABASE": "/tmp/database.sqlite",
     "SESSION_DRIVER": "cookie",

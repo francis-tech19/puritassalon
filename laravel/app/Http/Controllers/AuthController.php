@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Customer;
 use App\Models\Role;
 use App\Models\User;
+use App\Mail\VerificationCodeMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
@@ -61,11 +62,19 @@ class AuthController extends Controller
             'return' => $request->input('return'),
         ]));
 
-        Mail::raw("Your Purita's Beauty Lounge verification code is {$code}. It expires in 10 minutes.", function ($message) use ($user): void {
-            $message->to($user->email)->subject('Verify your salon account');
-        });
+        $mailSent = false;
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            $mailSent = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Registration email failed to send: ' . $e->getMessage());
+        }
 
-        return redirect()->route('verification.form', $user)->with('success', 'A verification code was sent to your email.');
+        if (app()->environment('local') || config('mail.default') === 'log' || ! $mailSent) {
+            $request->session()->flash('demo_verification_code', $code);
+        }
+
+        return redirect()->route('verification.form', $user)->with('success', $mailSent ? 'A verification code was sent to your email.' : 'Account created! Please enter your verification code.');
     }
 
     public function showVerification(User $user)
@@ -73,17 +82,68 @@ class AuthController extends Controller
         return view('auth.verify', compact('user'));
     }
 
+    public function resendVerification(Request $request, User $user)
+    {
+        if ($user->email_verified_at) {
+            return redirect()->route('customer.dashboard')->with('success', 'Your account is already verified.');
+        }
+
+        $code = (string) random_int(100000, 999999);
+        $user->update([
+            'verification_code' => $code,
+            'verification_expires_at' => now()->addMinutes(10),
+        ]);
+
+        $mailSent = false;
+        try {
+            Mail::to($user->email)->send(new VerificationCodeMail($user, $code));
+            $mailSent = true;
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Resend email failed to send: ' . $e->getMessage());
+        }
+
+        if (app()->environment('local') || config('mail.default') === 'log' || ! $mailSent) {
+            $request->session()->flash('demo_verification_code', $code);
+        }
+
+        return back()->with('success', 'A new verification code has been generated and sent to your email.');
+    }
+
     public function verify(Request $request, User $user)
     {
-        $request->validate(['code' => 'required|digits:6']);
-        if ($user->email_verified_at || $user->verification_code !== $request->code || ! $user->verification_expires_at || now()->greaterThan($user->verification_expires_at)) {
-            return back()->withErrors(['code' => 'The verification code is invalid or expired.']);
+        if ($user->email_verified_at) {
+            Auth::login($user);
+            $request->session()->regenerate();
+
+            return redirect()->route('customer.dashboard');
         }
-        $user->update(['email_verified_at' => now(), 'verification_code' => null, 'verification_expires_at' => null]);
+
+        $validated = $request->validate([
+            'code' => 'required|string',
+        ]);
+        $inputCode = trim((string) $validated['code']);
+
+        if (! $user->verification_code || (string) $user->verification_code !== $inputCode) {
+            return back()->withErrors(['code' => 'The verification code entered is incorrect.'])->withInput();
+        }
+
+        if (! $user->verification_expires_at || now()->greaterThan($user->verification_expires_at)) {
+            return back()->withErrors(['code' => 'The verification code has expired. Please click "Resend Code" to receive a new one.'])->withInput();
+        }
+
+        $user->update([
+            'email_verified_at' => now(),
+            'verification_code' => null,
+            'verification_expires_at' => null,
+        ]);
         Auth::login($user);
         $request->session()->regenerate();
 
-        return redirect()->route('customer.dashboard');
+        if ($request->session()->has('booking_intent')) {
+            return redirect()->route('customer.dashboard', ['view' => 'booking'])->with('success', 'Email verified successfully! You can now proceed with your booking.');
+        }
+
+        return redirect()->route('customer.dashboard')->with('success', 'Email verified successfully! Welcome to Purita\'s Beauty Lounge.');
     }
 
     public function login(Request $request)

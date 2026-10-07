@@ -20,8 +20,13 @@ class AppointmentAvailability
             return 'The selected service is not available for booking.';
         }
 
-        if ($date < now()->toDateString() || ($date === now()->toDateString() && $start->isPast())) {
-            return 'Please choose a future appointment time.';
+        if ($date < now()->toDateString()) {
+            return 'Please choose a future appointment date.';
+        }
+
+        // Same-day: reject anything in the past or within the next hour
+        if ($date === now()->toDateString() && $start->lessThan(now()->addHour())) {
+            return 'Same-day appointments must be booked at least 1 hour in advance.';
         }
 
         $settings = BusinessSetting::first();
@@ -59,9 +64,24 @@ class AppointmentAvailability
         $closingTime = min($businessClosing, $employee->shift_end_time ?? $businessClosing);
         $dateStart = Carbon::parse($date.' '.$openingTime);
         $dateEnd = Carbon::parse($date.' '.$closingTime);
+
+        // For today: start slots from now + 1 hour, rounded up to next 15-min mark
+        if ($date === now()->toDateString()) {
+            $earliest = now()->addHour()->second(0);
+            $roundedMinute = (int) ceil($earliest->minute / 15) * 15;
+            if ($roundedMinute >= 60) {
+                $earliest->addHour()->minute(0);
+            } else {
+                $earliest->minute($roundedMinute);
+            }
+            if ($earliest->greaterThan($dateStart)) {
+                $dateStart = $earliest;
+            }
+        }
+
         $firstMinute = (int) ceil($dateStart->minute / 15) * 15;
         $slotStart = $dateStart->copy()->second(0);
-        if ($firstMinute === 60) {
+        if ($firstMinute >= 60) {
             $slotStart->addHour()->minute(0);
         } else {
             $slotStart->minute($firstMinute);

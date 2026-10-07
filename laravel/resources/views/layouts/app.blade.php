@@ -50,28 +50,39 @@
             background-color: #047857 !important;
         }
 
-        /* Custom scrollbar for sidebar across browsers */
-        .salon-sidebar {
-            height: calc(100vh - 6.5rem) !important;
-            max-height: calc(100vh - 6.5rem) !important;
-            overflow-y: auto !important;
-            overflow-x: hidden !important;
-            position: sticky !important;
-            top: 5.5rem !important;
-            display: flex !important;
-            flex-direction: column !important;
-            scrollbar-width: thin !important;
-            scrollbar-color: #CBD5E1 transparent !important;
+        /* ─── Desktop Sidebar: sticky, never overlaps ─── */
+        @media (min-width: 768px) {
+            .salon-sidebar {
+                position: sticky !important;
+                top: 5rem !important; /* sits right below the 80px header */
+                height: calc(100vh - 5rem) !important;
+                max-height: calc(100vh - 5rem) !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                display: flex !important;
+                flex-direction: column !important;
+                z-index: 20 !important; /* below header z-40 */
+                scrollbar-width: thin;
+                scrollbar-color: #CBD5E1 transparent;
+                flex-shrink: 0 !important;
+                width: 16rem !important;  /* w-64 */
+            }
         }
 
+        /* ─── Mobile Sidebar: fixed drawer ─── */
         @media (max-width: 767px) {
             .salon-sidebar {
                 position: fixed !important;
-                top: 5rem !important;
+                top: 0 !important;
                 left: 0 !important;
                 width: min(16rem, 86vw) !important;
-                height: calc(100vh - 5rem) !important;
-                max-height: calc(100vh - 5rem) !important;
+                height: 100vh !important;
+                max-height: 100vh !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                z-index: 50 !important;
+                display: flex !important;
+                flex-direction: column !important;
             }
 
             .app-header-inner {
@@ -126,6 +137,7 @@
                 min-width: 0;
             }
         }
+
         .salon-sidebar::-webkit-scrollbar {
             width: 6px;
         }
@@ -248,10 +260,11 @@
          <!-- Mobile backdrop -->
          <div x-show="sidebarOpen" x-cloak class="fixed inset-0 z-40 bg-black/50 backdrop-blur-[1px] md:hidden" @click="sidebarOpen = false"></div>
 
-         <!-- Sidebar Navigation (Fixed in place, independently scrollable) -->
-         <aside id="mobileSidebar" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" 
+         <!-- Sidebar Navigation (Fixed drawer on mobile, sticky on desktop) -->
+         <aside id="mobileSidebar"
+             :class="sidebarOpen ? 'translate-x-0' : 'md:translate-x-0 -translate-x-full'"
              data-sidebar-scroll="main"
-             class="salon-sidebar w-64 shrink-0 transition-transform duration-250 ease-out fixed inset-y-0 left-0 z-50 bg-white p-6 shadow-2xl md:shadow-none md:static md:translate-x-0 md:transform-none md:transition-none md:bg-white md:p-3 md:rounded-2xl md:border md:border-gray-200">
+             class="salon-sidebar bg-white p-4 shadow-2xl md:shadow-none md:rounded-2xl md:border md:border-gray-200 md:transition-none transition-transform duration-250 ease-out">
             <div class="flex justify-between items-center md:hidden mb-4 pb-2 border-b">
                 <span class="font-bold text-lg text-[#7A1C49]">Salon Modules</span>
                 <button @click="sidebarOpen = false" class="text-gray-500 hover:text-gray-800">

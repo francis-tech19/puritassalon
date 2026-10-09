@@ -290,6 +290,10 @@ class AppointmentController extends Controller
         /** @var User|null $user */
         $user = Auth::user();
         abort_unless($user?->isOwnerOrAdmin() || $user?->isStaff(), 403);
+
+        if ($user->isStaff() && $user->employee_id && $appointment->employee_id && (int) $user->employee_id !== (int) $appointment->employee_id) {
+            abort(403);
+        }
     }
 
     private function lateThresholdElapsed(Appointment $appointment): bool

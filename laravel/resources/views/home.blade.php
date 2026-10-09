@@ -147,6 +147,128 @@
                 </div>
             </div>
         </section>
+
+        <!-- Troubleshooting & How to Fix Errors Section -->
+        <section id="troubleshooting" class="border-t border-[#ead8d5] bg-[#fffbf9] px-5 py-16 text-[#31131d] lg:px-8">
+            <div class="mx-auto max-w-5xl">
+                <div class="text-center">
+                    <span class="inline-flex items-center gap-1.5 rounded-full border border-[#8d123f]/20 bg-[#faebee] px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-[#8d123f]">
+                        <i data-lucide="help-circle" class="h-3.5 w-3.5"></i> Troubleshooting &amp; Help
+                    </span>
+                    <h2 class="mt-3 text-3xl font-bold text-[#4d071d] sm:text-4xl">Facing an Error? Here's How to Fix It</h2>
+                    <p class="mx-auto mt-3 max-w-2xl text-sm leading-6 text-gray-600 sm:text-base">
+                        If you face an error, unexpected notification, or difficulty while booking your visit, here are quick solutions you can follow:
+                    </p>
+                </div>
+
+                <div class="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <!-- Issue 1 -->
+                    <div class="flex flex-col rounded-2xl border border-[#ebdcd8] bg-white p-6 shadow-sm transition hover:border-[#8d123f]/50 hover:shadow-md">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#faebee] text-[#8d123f]">
+                            <i data-lucide="calendar-x" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="mt-4 text-base font-bold text-[#4d071d]">Slot Unavailable or Conflict</h3>
+                        <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-700">Booking issue</p>
+                        <p class="mt-2 text-xs leading-5 text-gray-600">
+                            The selected time slot was just booked by another client or falls outside salon hours.
+                        </p>
+                        <div class="mt-4 border-t border-[#f4eae7] pt-3 text-xs leading-5 text-[#632032]">
+                            <strong class="font-semibold text-[#4d071d]">How to fix:</strong>
+                            <ul class="mt-1.5 list-inside list-disc space-y-1 text-gray-600">
+                                <li>Refresh page for live open slots</li>
+                                <li>Select an alternative time or date</li>
+                                <li>Switch to another available stylist</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Issue 2 -->
+                    <div class="flex flex-col rounded-2xl border border-[#ebdcd8] bg-white p-6 shadow-sm transition hover:border-[#8d123f]/50 hover:shadow-md">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#faebee] text-[#8d123f]">
+                            <i data-lucide="key-round" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="mt-4 text-base font-bold text-[#4d071d]">Login or Password Error</h3>
+                        <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-700">Account access</p>
+                        <p class="mt-2 text-xs leading-5 text-gray-600">
+                            Incorrect email or password, or password strength requirement was not met.
+                        </p>
+                        <div class="mt-4 border-t border-[#f4eae7] pt-3 text-xs leading-5 text-[#632032]">
+                            <strong class="font-semibold text-[#4d071d]">How to fix:</strong>
+                            <ul class="mt-1.5 list-inside list-disc space-y-1 text-gray-600">
+                                <li>Check email spelling carefully</li>
+                                <li>Use at least 8 chars (1 uppercase &amp; 1 number)</li>
+                                <li>Use "Forgot password" or re-register</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Issue 3 -->
+                    <div class="flex flex-col rounded-2xl border border-[#ebdcd8] bg-white p-6 shadow-sm transition hover:border-[#8d123f]/50 hover:shadow-md">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#faebee] text-[#8d123f]">
+                            <i data-lucide="file-question" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="mt-4 text-base font-bold text-[#4d071d]">Booking Not Showing</h3>
+                        <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-700">Status &amp; verification</p>
+                        <p class="mt-2 text-xs leading-5 text-gray-600">
+                            You completed the form but can't see the appointment confirmation immediately.
+                        </p>
+                        <div class="mt-4 border-t border-[#f4eae7] pt-3 text-xs leading-5 text-[#632032]">
+                            <strong class="font-semibold text-[#4d071d]">How to fix:</strong>
+                            <ul class="mt-1.5 list-inside list-disc space-y-1 text-gray-600">
+                                <li>Go to your <strong>Appointment History</strong></li>
+                                <li>Check notifications for your proof code</li>
+                                <li>Wait 30 seconds and refresh the dashboard</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Issue 4 -->
+                    <div class="flex flex-col rounded-2xl border border-[#ebdcd8] bg-white p-6 shadow-sm transition hover:border-[#8d123f]/50 hover:shadow-md">
+                        <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-[#faebee] text-[#8d123f]">
+                            <i data-lucide="refresh-cw" class="h-6 w-6"></i>
+                        </div>
+                        <h3 class="mt-4 text-base font-bold text-[#4d071d]">Page Glitch or Freeze</h3>
+                        <p class="mt-1 text-xs font-semibold uppercase tracking-wider text-amber-700">Browser &amp; connection</p>
+                        <p class="mt-2 text-xs leading-5 text-gray-600">
+                            Page is unresponsive, form fails to submit, or connection timed out.
+                        </p>
+                        <div class="mt-4 border-t border-[#f4eae7] pt-3 text-xs leading-5 text-[#632032]">
+                            <strong class="font-semibold text-[#4d071d]">How to fix:</strong>
+                            <ul class="mt-1.5 list-inside list-disc space-y-1 text-gray-600">
+                                <li>Verify phone number format</li>
+                                <li>Refresh page or clear browser cache</li>
+                                <li>Try opening in a private/incognito tab</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assistance Callout Banner -->
+                <div class="mt-10 flex flex-col items-center justify-between gap-6 rounded-2xl bg-[#4d071d] p-6 text-white shadow-lg sm:flex-row sm:p-8" style="background: linear-gradient(135deg, #4d071d 0%, #6a1030 50%, #8d123f 100%); color: #ffffff;">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full shadow" style="background-color: #f4d582; color: #4d071d;">
+                            <i data-lucide="phone-call" class="h-6 w-6"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold" style="color: #ffffff;">Still having trouble or facing an error?</h4>
+                            <p class="mt-1 text-sm leading-relaxed" style="color: rgba(255, 255, 255, 0.85);">
+                                Don't worry! Our reception team can schedule your appointment directly or assist you anytime.
+                            </p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-3 shrink-0">
+                        <a href="tel:{{ preg_replace('/[^0-9+]/', '', $settings?->contact_phone ?? '09611556557') }}" class="action-link inline-flex min-h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold shadow transition hover:opacity-90" style="background-color: #f4d582; color: #4d071d;">
+                            <i data-lucide="phone" class="h-4 w-4"></i>
+                            Call Reception
+                        </a>
+                        <a href="{{ route('home', ['section' => 'contact']) }}" class="action-link inline-flex min-h-11 items-center gap-2 rounded-xl px-5 text-sm font-bold transition hover:bg-white hover:text-[#4d071d]" style="color: #ffffff; background-color: rgba(255, 255, 255, 0.15); border: 1.5px solid rgba(255, 255, 255, 0.7);">
+                            <i data-lucide="message-square" class="h-4 w-4"></i>
+                            Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
         @endif
 
         @if($activeSection === 'contact')

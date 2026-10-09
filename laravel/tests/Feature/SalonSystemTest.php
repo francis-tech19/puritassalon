@@ -68,7 +68,12 @@ class SalonSystemTest extends TestCase
 
         $home->assertSee('Look good.', false)->assertDontSee('Featured Services');
         $services->assertSee('Featured Services')->assertDontSee('Look good.', false)->assertDontSee('Why choose');
-        $about->assertSee('Why choose')->assertSee('How It Works')->assertDontSee('Poblacion Public Market');
+        $about->assertSee('Why choose')
+            ->assertSee('How It Works')
+            ->assertSee("Facing an Error? Here's How to Fix It", false)
+            ->assertSee('Slot Unavailable or Conflict')
+            ->assertSee('Login or Password Error')
+            ->assertDontSee('Poblacion Public Market');
         $contact->assertSee('Poblacion Public Market, San Juan, Batangas')
             ->assertSee('09611556557')
             ->assertSee('09192001649')

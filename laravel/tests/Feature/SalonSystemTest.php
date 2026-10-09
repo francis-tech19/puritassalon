@@ -289,6 +289,40 @@ class SalonSystemTest extends TestCase
         $response->assertSee('Salon Inventory');
     }
 
+    public function test_inventory_logs_by_product_renders(): void
+    {
+        $user = User::where('username', 'owner')->first();
+        $inventory = Inventory::firstOrFail();
+
+        // 1. All logs view
+        $response = $this->actingAs($user)->get('/inventory/logs');
+        $response->assertStatus(200);
+        $response->assertSee('Product Logs');
+
+        // 2. Perform adjustment to generate a specific log
+        $this->actingAs($user)->post(route('inventory.adjust', $inventory), [
+            'transaction_type' => 'RESTOCK',
+            'quantity_change' => 15,
+            'notes' => 'Bulk restock shipment #994',
+        ]);
+
+        // 3. Logs filtered by specific product
+        $productLogsResponse = $this->actingAs($user)->get(route('inventory.logs', ['product_id' => $inventory->id]));
+        $productLogsResponse->assertStatus(200);
+        $productLogsResponse->assertSee($inventory->item_name);
+        $productLogsResponse->assertSee('Selected Product Focus');
+        $productLogsResponse->assertSee('Bulk restock shipment #994');
+
+        // 4. Logs filtered by movement action and search
+        $filteredResponse = $this->actingAs($user)->get(route('inventory.logs', [
+            'product_id' => $inventory->id,
+            'action' => 'RESTOCK',
+            'search' => '994',
+        ]));
+        $filteredResponse->assertStatus(200);
+        $filteredResponse->assertSee('Bulk restock shipment #994');
+    }
+
     public function test_admin_console_access_for_admin(): void
     {
         $admin = User::where('username', 'admin')->first();

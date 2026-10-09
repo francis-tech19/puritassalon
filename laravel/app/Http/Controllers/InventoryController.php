@@ -17,7 +17,11 @@ class InventoryController extends Controller
     public function index(Request $request): View
     {
         $status = $request->input('status');
-        $showLogs = $request->routeIs('inventory.logs');
+        $productId = $request->input('product_id');
+        $movementType = $request->input('action');
+        $search = $request->input('search');
+        $showLogs = $request->routeIs('inventory.logs') || $request->filled('product_id');
+
         $query = Inventory::with(['transactions.user']);
 
         if ($status === 'LOW_STOCK') {
@@ -26,7 +30,17 @@ class InventoryController extends Controller
             $query->where('quantity', 0);
         }
 
+        if ($search && ! $showLogs) {
+            $query->where(function ($q) use ($search) {
+                $q->where('item_name', 'like', "%{$search}%")
+                    ->orWhere('item_code', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%")
+                    ->orWhere('supplier', 'like', "%{$search}%");
+            });
+        }
+
         $items = $query->orderBy('item_name')->get();
+        $allItems = Inventory::orderBy('item_name')->get();
         $lowStockCount = Inventory::whereColumn('quantity', '<=', 'min_stock_level')->count();
         $outOfStockCount = Inventory::where('quantity', 0)->count();
         $totalProducts = Inventory::count();
@@ -42,17 +56,81 @@ class InventoryController extends Controller
                     ->orWhere(fn ($legacyQuery) => $legacyQuery->whereNull('action')->where('transaction_type', 'STOCK_OUT'));
             })
             ->sum(DB::raw('ABS(quantity_change)'));
+
+        $selectedProduct = null;
+        $productStats = null;
+
+        if ($productId) {
+            $selectedProduct = Inventory::find($productId);
+            if ($selectedProduct) {
+                $prodInQuery = InventoryTransaction::where('inventory_id', $productId)
+                    ->where(function ($query): void {
+                        $query->whereIn('action', ['STOCK_IN', 'RESTOCK', 'RETURNED'])
+                            ->orWhere(fn ($legacyQuery) => $legacyQuery->whereNull('action')->where('transaction_type', 'STOCK_IN'));
+                    });
+                $prodOutQuery = InventoryTransaction::where('inventory_id', $productId)
+                    ->where(function ($query): void {
+                        $query->whereIn('action', ['STOCK_OUT', 'SALE', 'DAMAGED', 'EXPIRED', 'TRANSFER'])
+                            ->orWhere(fn ($legacyQuery) => $legacyQuery->whereNull('action')->where('transaction_type', 'STOCK_OUT'));
+                    });
+
+                $productStats = [
+                    'total_in' => $prodInQuery->sum(DB::raw('ABS(quantity_change)')),
+                    'total_out' => $prodOutQuery->sum(DB::raw('ABS(quantity_change)')),
+                    'total_logs' => InventoryTransaction::where('inventory_id', $productId)->count(),
+                ];
+            }
+        }
+
         $transactionsQuery = InventoryTransaction::with(['inventory', 'user'])->latest();
-        $recentTransactions = $showLogs ? $transactionsQuery->paginate(50) : $transactionsQuery->take(10)->get();
+
+        if ($productId) {
+            $transactionsQuery->where('inventory_id', $productId);
+        }
+
+        if ($movementType) {
+            $transactionsQuery->where(function ($q) use ($movementType) {
+                $q->where('action', $movementType)
+                    ->orWhere(function ($legacy) use ($movementType) {
+                        $legacy->whereNull('action')->where('transaction_type', $movementType);
+                    });
+            });
+        }
+
+        if ($search && $showLogs) {
+            $transactionsQuery->where(function ($q) use ($search) {
+                $q->whereHas('inventory', function ($inv) use ($search) {
+                    $inv->where('item_name', 'like', "%{$search}%")
+                        ->orWhere('item_code', 'like', "%{$search}%");
+                })->orWhere('notes', 'like', "%{$search}%");
+            });
+        }
+
+        $statsList = [
+            ['label' => 'Total Products', 'value' => $totalProducts, 'color' => 'text-gray-900', 'icon' => 'package'],
+            ['label' => 'Low Stock Items', 'value' => $lowStockCount, 'color' => 'text-amber-700', 'icon' => 'alert-triangle'],
+            ['label' => 'Out of Stock', 'value' => $outOfStockCount, 'color' => 'text-red-700', 'icon' => 'alert-circle'],
+            ['label' => 'Stock In Today', 'value' => $stockInToday, 'color' => 'text-emerald-700', 'icon' => 'arrow-down-circle'],
+            ['label' => 'Stock Out Today', 'value' => $stockOutToday, 'color' => 'text-rose-700', 'icon' => 'arrow-up-circle'],
+        ];
+
+        $recentTransactions = $showLogs ? $transactionsQuery->paginate(25)->withQueryString() : $transactionsQuery->take(10)->get();
 
         return view('inventory.index', compact(
             'items',
+            'allItems',
             'status',
+            'productId',
+            'selectedProduct',
+            'productStats',
+            'movementType',
+            'search',
             'lowStockCount',
             'outOfStockCount',
             'totalProducts',
             'stockInToday',
             'stockOutToday',
+            'statsList',
             'recentTransactions',
             'showLogs'
         ));
